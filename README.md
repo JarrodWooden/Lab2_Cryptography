@@ -134,12 +134,114 @@ byte with the second byte, the third with the third (lets say the key is 3 bytes
 then correspond to the first byte of the key. So now there are two checkers ( one for the length of the message, the other for
 the length of the key)
 
+Length Subroutine - Function: Finds the lenth of the string before entering the the first main
+			subroutine. Takes in the message address and the stopOne address.
+			Once the pattern is found of stopOne then it will return and go
+			into the first main subroutine. Register r14 is destroyed.
+			
+
+
+The new length subroutine is below:
+
+```
+findLength:
+			mov r5, r8   			;r8 will be a temp reg
+			mov r14, r15
+
+			mov.w	#stopTwo, r14
+			sub	r12, r14			;r14 is now length of key
+
+
+
+			sub	r8, r15 			;r15 is now the value of the length
+
+			ret
+```
+
+
+Once the program is done finding the length of the message and of the key it can go into the first MAIN subroutine
+decryptMessage to begin decryption.
+
+decryptMessage now keeps track of at which point in the key we are in and it keeps track of at what point of the message we
+are in.
+
+decryptMessage first initializes the the lengths of the message and the key in different registers so that we don't destroy 
+the old ones
+
+Then it goes into its main loop which will get the byte of the message we are on; the byte of the key we are on; pass those
+values to decryptcharacter which will xor the two together; then increment both of the pointers to the message and the key; 
+decrement the values for the lengths of both the key and the message in the temporary registers; check to see if we reached 
+the end of the message or the key; if we reached the end of the message we are done and the program will end; if we reached 
+the end of the message the pointer will be set back to its original value and the length will be set back to its original 
+value and the decryption will continue.
+
+The full subroutine is shown below:
+
+```
+decryptMessage:
+			;hold all the values of the original registers into temp registers
+			;so we don't destroy any registers.
+;			mov r5, r8		;the message
+			mov r6, r9		;the Answer
+			mov r15, r10	;the message Length
+			mov r14, r13	; the key length
+
+loopDecr
+			mov.b	0(r8), r11
+			inc		r8
+			mov.b	0(r12), r7
+			inc		r12
+			call	#decryptCharacter
+			mov.b	r11, 0(r9)
+			inc		r9
+			dec		r13
+			jnz		moveOn
+			mov 	r14, r13
+			sub		r13, r12
+moveOn
+			dec 	r10
+			jnz		loopDecr
+
+
+            ret
+```
+
+##A Functionality
+
+The objectives of A Functionality are below:
+
+-In addition to B Functionality, you must decrypt the following message without knowledge of its key:
+
+-There are many ways to attack this problem. Some techniques require substantially more CPU time than others. Some techniques 
+can be done by hand. Take the time to think through your approach before you begin coding.
+
+The nice thing about A Functionality is that we don't need to change the program we made for B Functionality... all we have
+to do it do Frequency Analysis to find the correct answer.
+
+First what I did is though of a couple of characters that might be common in the message. I used a space " " and a vowel "e".
+
+I set the key in the program equal to these values and ran the program. I copy-pasted the results in byte form to an excel 
+sheet and counted the number of times each byte appeared in the results from the two keys.
+
+Once I had a count I inserted the value that came up the most for the Key and my results were characters that made sense for
+every odd value in the message, which told me the key was two bytes long. For the second byte I inserted the value that 
+appeared the second most when working with the space the the e. The results was a message that made sense to USAFA Cadets!
+
+
+The Excel File used can be seen in the picture below:
+
+
+![alt text](https://raw.githubusercontent.com/JarrodWooden/Lab2_Cryptography/master/ExcellTestFreq.PNG "Frequency Analysis")
+
+The answer when I ran my program with the correct values for the key can be seen below:
+
+![alt text](https://raw.githubusercontent.com/JarrodWooden/Lab2_Cryptography/master/A_FunctionalityMessage.PNG "A Functionality Results")
 
 
 
 
+Documentation: Dr. York explained the idea of Frequency Analysis to me before I started working on A Functionality.
 
 
 
-
-
+#Have a Great Air Force Day!
